@@ -1,0 +1,72 @@
+<!-- 카메라 녹화해서 디바이스에 저장하는 파일 -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카메라 영상 녹화</title>
+</head>
+<body>
+    <button id="btn_start">시작</button>
+    <button id="btn_stop">정지</button>
+    <input type="text" id="filename" placeholder="파일명을 입력하세요"> <!-- 파일명을 입력할 input 추가 -->
+    <br><br>
+    <video id="video_realtime" controls>실시간 영상 재생용</video>
+</body>
+
+<script>
+    const $video_realtime = document.querySelector("#video_realtime");
+    const $btn_start = document.querySelector("#btn_start");
+    const $btn_stop = document.querySelector("#btn_stop");
+    const $filenameInput = document.querySelector("#filename"); // 파일명을 입력받는 input 추가
+
+    let mediaRecorder = null;
+    let mediaStream = null;
+    let chunks = [];
+
+    $btn_start.onclick = async function() {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true
+        });
+
+        $video_realtime.srcObject = mediaStream;
+        $video_realtime.play();
+
+        mediaRecorder = new MediaRecorder(mediaStream);
+
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+                chunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+
+            // 사용자가 입력한 파일명 가져오기
+            const fileName = $filenameInput.value || 'recorded-video'; // 입력값이 없을 경우 기본값 사용
+
+            // 녹화된 영상을 다운로드할 수 있는 링크 생성
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName}.webm`; // 파일명 지정
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        mediaRecorder.start();
+    };
+
+    $btn_stop.onclick = () => {
+        mediaRecorder.stop();
+        mediaStream.getTracks().forEach((track) => {
+            track.stop();
+        });
+    };
+</script>
+</html>

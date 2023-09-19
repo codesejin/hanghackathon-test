@@ -1,0 +1,86 @@
+<!-- 음성 -> 텍스트 : 음성 인식 파일 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>음성 인식 및 전송</title>
+</head>
+<body>
+    <button id="startRecognition">음성 인식 시작</button>
+    <button id="stopRecognition">음성 인식 종료</button>
+    <p id="recognizedText"></p>
+
+    <script>
+        const startRecognitionButton = document.getElementById('startRecognition');
+        const stopRecognitionButton = document.getElementById('stopRecognition');
+        const recognizedText = document.getElementById('recognizedText');
+        let recognition;
+
+        startRecognitionButton.addEventListener('click', () => {
+            recognition = new webkitSpeechRecognition() || speechRecognition();
+
+            recognition.lang = 'ko-KR'; // 인식 언어 설정 (한국어)
+            recognition.interimResults = true; // 중간 결과 표시
+
+            recognition.onstart = () => {
+                recognizedText.textContent = '음성 인식 중...';
+            };
+
+            recognition.onresult = (event) => {
+                const result = event.results[event.resultIndex];
+                const transcript = result[0].transcript;
+
+                recognizedText.textContent = transcript;
+            };
+
+            recognition.onend = () => {
+                recognizedText.textContent += ' (음성 인식 종료)';
+            };
+
+            startRecognitionButton.disabled = true;
+            stopRecognitionButton.disabled = false;
+
+            recognition.start();
+        });
+
+        stopRecognitionButton.addEventListener('click', () => {
+          if (recognition) {
+              recognition.stop();
+              recognizedText.textContent += ' (음성 인식 중지)';
+              startRecognitionButton.disabled = false;
+              stopRecognitionButton.disabled = true;
+
+              // 음성을 서버로 전송
+              const textToSubmit = recognizedText.textContent;
+              sendDataToServer(textToSubmit);
+          }
+      });
+
+        function sendDataToServer(text) {
+            // 서버 URL 설정
+            const serverUrl = 'http://localhost:8080/api/submit-text'; // 백엔드 엔드포인트 URL
+
+            // POST 요청을 보낼 데이터 생성
+            const data = { text: text };
+
+            // POST 요청 보내기
+            fetch(serverUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log('서버 응답:', data);
+                })
+                .catch((error) => {
+                    console.error('서버 요청 실패:', error);
+                });
+        }
+    </script>
+</body>
+</html>
