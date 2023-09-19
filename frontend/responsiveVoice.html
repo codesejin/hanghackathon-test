@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>텍스트를 음성으로 변환하기</title>
+</head>
+<body>
+    <h1>텍스트를 음성으로 변환하기</h1>
+    <p>음성으로 변환할 텍스트를 입력하세요:</p>
+    <textarea id="textToSpeak" rows="4" cols="50"></textarea>
+    <button id="speakButton">음성으로 변환</button>
+
+    <!-- ResponsiveVoice.js 라이브러리 스크립트 포함 -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js"></script>
+
+    <script>
+        // 음성으로 변환하는 함수
+        function speakText() {
+            var text = document.getElementById("textToSpeak").value;
+            responsiveVoice.speak(text, "Korean Female"); // 음성 출력
+        }
+
+        // 버튼 클릭 시 음성 변환 함수 호출
+        document.getElementById("speakButton").addEventListener("click", speakText);
+    </script>
+</body>
+</html>
